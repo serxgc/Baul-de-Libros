@@ -481,7 +481,7 @@
 <script type="module">
 /* ── Firebase ── */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -539,7 +539,8 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-$('btn-signin').onclick  = () => signInWithPopup(auth, new GoogleAuthProvider());
+getRedirectResult(auth).catch(console.error);
+$('btn-signin').onclick  = () => signInWithRedirect(auth, new GoogleAuthProvider());
 $('btn-signout').onclick = () => signOut(auth);
 
 /* ── State ── */
