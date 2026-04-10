@@ -111,8 +111,10 @@
     .btitle { font-size: .8rem; color: var(--text); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .bauthor { font-family: sans-serif; font-size: .72rem; color: var(--muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .bstars { margin-top: 3px; display: flex; gap: 1px; }
-    .bstars .s { font-size: .68rem; color: var(--border); }
+    .bstars .s { font-size: .68rem; color: var(--border); position: relative; }
     .bstars .s.on { color: var(--star-on); }
+    .bstars .s.half { color: var(--border); }
+    .bstars .s.half::before { content: '★'; position: absolute; left: 0; top: 0; width: 50%; overflow: hidden; color: var(--star-on); display: inline-block; }
 
     /* ── Empty ── */
     .empty { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--muted); font-family: sans-serif; }
@@ -171,9 +173,12 @@
     .fgrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
 
     /* Star input */
-    .star-inp { display: flex; gap: 3px; }
-    .star-inp .si { font-size: 1.6rem; cursor: pointer; color: var(--border); transition: color .1s; user-select: none; line-height: 1; }
-    .star-inp .si.on { color: var(--star-on); }
+    .star-inp { display: flex; gap: 2px; }
+    .star-slot { position: relative; width: 1.7rem; height: 1.7rem; cursor: pointer; user-select: none; }
+    .sh, .sf { position: absolute; top: 0; font-size: 1.7rem; line-height: 1; color: var(--border); overflow: hidden; white-space: nowrap; transition: color .08s; }
+    .sh { width: 50%; left: 0; }
+    .sf { width: 100%; left: 0; }
+    .sh.on, .sf.on { color: var(--star-on); }
 
     /* ══════════════════════════════════
        ADD MODAL — step 1: search
@@ -297,8 +302,10 @@
     .d-title { font-size: 1.45rem; line-height: 1.3; margin-bottom: .2rem; }
     .d-author { font-family: sans-serif; font-size: .92rem; color: var(--muted); margin-bottom: .9rem; }
     .d-stars { display: flex; gap: 3px; margin-bottom: .9rem; }
-    .d-stars .s { font-size: 1.05rem; color: var(--border); }
+    .d-stars .s { font-size: 1.05rem; color: var(--border); position: relative; }
     .d-stars .s.on { color: var(--star-on); }
+    .d-stars .s.half { color: var(--border); }
+    .d-stars .s.half::before { content: '★'; position: absolute; left: 0; top: 0; width: 50%; overflow: hidden; color: var(--star-on); display: inline-block; }
     .d-meta { font-family: sans-serif; font-size: .8rem; color: var(--muted); margin-bottom: .3rem; }
     .d-meta strong { color: var(--text); }
     .d-review { margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid var(--border); }
@@ -324,9 +331,46 @@
       .s2-wrap { grid-template-columns: 1fr; }
       .s2-cover-col { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; border-radius: var(--r) var(--r) 0 0; }
     }
+
+    /* ── Login screen ── */
+    .login-screen {
+      display: none; position: fixed; inset: 0; background: var(--bg);
+      z-index: 500; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+    }
+    .login-screen.visible { display: flex; }
+    .login-logo { font-size: 2.5rem; font-weight: bold; color: var(--accent); }
+    .login-logo span { color: var(--text); }
+    .login-sub { font-family: sans-serif; font-size: .95rem; color: var(--muted); }
+    .btn-google {
+      display: flex; align-items: center; gap: .75rem;
+      background: #fff; color: #3c4043; border: none;
+      padding: .7rem 1.4rem; border-radius: 8px;
+      font-size: .95rem; font-family: sans-serif; font-weight: 500;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.35);
+      transition: box-shadow .15s;
+    }
+    .btn-google:hover { box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* ── User in header ── */
+    .user-area { display: flex; align-items: center; gap: .6rem; }
+    .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+    .user-name { font-family: sans-serif; font-size: .8rem; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn-signout { background: none; border: 1px solid var(--border); border-radius: 6px; padding: .3rem .65rem; color: var(--muted); font-family: sans-serif; font-size: .75rem; cursor: pointer; transition: color .15s; }
+    .btn-signout:hover { color: var(--text); }
   </style>
 </head>
 <body>
+
+<!-- ── Login screen ── -->
+<div class="login-screen visible" id="login-screen">
+  <div class="login-logo">Biblio<span>track</span></div>
+  <div class="login-sub">Tu registro personal de lecturas</div>
+  <button class="btn-google" id="btn-signin">
+    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+    Continuar con Google
+  </button>
+</div>
 
 <!-- ── Header ── -->
 <header>
@@ -337,7 +381,12 @@
     <div class="stat-item"><div class="num" id="s-year">0</div><div class="lbl">Este año</div></div>
     <div class="stat-item"><div class="num" id="s-avg">—</div><div class="lbl">Media ★</div></div>
   </div>
-  <button class="btn-add" id="btn-open-add">+ Añadir libro</button>
+  <button class="btn-add" id="btn-open-add" style="display:none">+ Añadir libro</button>
+  <div class="user-area" id="user-area" style="display:none">
+    <img class="user-avatar" id="user-avatar" src="" alt="" />
+    <span class="user-name" id="user-name"></span>
+    <button class="btn-signout" id="btn-signout">Salir</button>
+  </div>
 </header>
 
 <!-- ── Year nav ── -->
@@ -385,11 +434,11 @@
           <div class="frow">
             <label class="flbl">Puntuación</label>
             <div class="star-inp" id="star-inp">
-              <span class="si" data-v="1">★</span>
-              <span class="si" data-v="2">★</span>
-              <span class="si" data-v="3">★</span>
-              <span class="si" data-v="4">★</span>
-              <span class="si" data-v="5">★</span>
+              <div class="star-slot"><span class="sh" data-v="0.5">★</span><span class="sf" data-v="1">★</span></div>
+              <div class="star-slot"><span class="sh" data-v="1.5">★</span><span class="sf" data-v="2">★</span></div>
+              <div class="star-slot"><span class="sh" data-v="2.5">★</span><span class="sf" data-v="3">★</span></div>
+              <div class="star-slot"><span class="sh" data-v="3.5">★</span><span class="sf" data-v="4">★</span></div>
+              <div class="star-slot"><span class="sh" data-v="4.5">★</span><span class="sf" data-v="5">★</span></div>
             </div>
           </div>
           <div class="fgrid2">
@@ -429,17 +478,76 @@
   </div>
 </div>
 
-<script>
-/* ── Data ── */
-const STORE = 'bibliotrack_v2';
-function load() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } }
-function persist(d) { localStorage.setItem(STORE, JSON.stringify(d)); }
+<script type="module">
+/* ── Firebase ── */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-let books = load();
+const firebaseConfig = {
+  apiKey: "AIzaSyAZQsVCU2EVlB0qKLGZunJTIdyuvdIYHTc",
+  authDomain: "bibliotrack-88f3c.firebaseapp.com",
+  projectId: "bibliotrack-88f3c",
+  storageBucket: "bibliotrack-88f3c.firebasestorage.app",
+  messagingSenderId: "951243457890",
+  appId: "1:951243457890:web:b5dad91594936de9e2983b"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser = null;
+let unsubBooks  = null;
+
+function booksCol() { return collection(db, `users/${currentUser.uid}/books`); }
+
+async function saveBook(entry) {
+  await setDoc(doc(booksCol(), entry.id), entry);
+}
+async function removeBook(id) {
+  await deleteDoc(doc(booksCol(), id));
+}
+
+function subscribeBooks() {
+  if (unsubBooks) unsubBooks();
+  unsubBooks = onSnapshot(booksCol(), snap => {
+    books = snap.docs.map(d => d.data());
+    refresh();
+  });
+}
+
+/* ── Auth UI ── */
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  if (user) {
+    $('login-screen').classList.remove('visible');
+    $('user-area').style.display   = 'flex';
+    $('btn-open-add').style.display = '';
+    $('user-avatar').src  = user.photoURL || '';
+    $('user-name').textContent = user.displayName || user.email;
+    subscribeBooks();
+  } else {
+    $('login-screen').classList.add('visible');
+    $('user-area').style.display    = 'none';
+    $('btn-open-add').style.display = 'none';
+    books = [];
+    refresh();
+    if (unsubBooks) { unsubBooks(); unsubBooks = null; }
+  }
+});
+
+$('btn-signin').onclick  = () => signInWithPopup(auth, new GoogleAuthProvider());
+$('btn-signout').onclick = () => signOut(auth);
+
+/* ── State ── */
+let books = [];
 let activeYear = 'all';
 let editId = null;
 let starVal = 0;
-let pendingBook = {}; // holds data for the book being added/edited
+let pendingBook = {};
 
 /* ── Helpers ── */
 const $ = id => document.getElementById(id);
@@ -448,7 +556,10 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
 const coverUrl = (id, sz='M') => id ? `https://covers.openlibrary.org/b/id/${id}-${sz}.jpg` : null;
 
 function starsHtml(r, cls='s') {
-  return [1,2,3,4,5].map(i => `<span class="${cls}${i<=r?' on':''}">★</span>`).join('');
+  return [1,2,3,4,5].map(i => {
+    const c = r >= i ? ' on' : r >= i - 0.5 ? ' half' : '';
+    return `<span class="${cls}${c}">★</span>`;
+  }).join('');
 }
 
 const STATUS = { read:'Leído', reading:'Leyendo', want:'Quiero leer' };
@@ -576,16 +687,16 @@ function resetForm() {
 /* Stars */
 function setStars(v) {
   starVal = v;
-  document.querySelectorAll('#star-inp .si').forEach(el =>
-    el.classList.toggle('on', parseInt(el.dataset.v) <= v)
+  document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(el =>
+    el.classList.toggle('on', parseFloat(el.dataset.v) <= v)
   );
 }
-document.querySelectorAll('#star-inp .si').forEach(el => {
-  el.addEventListener('click', () => setStars(parseInt(el.dataset.v)));
+document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(el => {
+  el.addEventListener('click', () => setStars(parseFloat(el.dataset.v)));
   el.addEventListener('mouseenter', () => {
-    const hv = parseInt(el.dataset.v);
-    document.querySelectorAll('#star-inp .si').forEach(s =>
-      s.classList.toggle('on', parseInt(s.dataset.v) <= hv)
+    const hv = parseFloat(el.dataset.v);
+    document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(s =>
+      s.classList.toggle('on', parseFloat(s.dataset.v) <= hv)
     );
   });
 });
@@ -693,13 +804,8 @@ $('btn-save').onclick = () => {
     review:   $('f-review').value.trim(),
   };
 
-  books = editId
-    ? books.map(b => b.id === editId ? { ...b, ...entry } : b)
-    : [entry, ...books];
-
-  persist(books);
+  saveBook(entry);
   closeAdd();
-  refresh();
 };
 
 /* ── Detail modal ── */
@@ -730,10 +836,8 @@ function openDetail(id) {
   $('d-edit').onclick = () => { closeDet(); openEdit(id); };
   $('d-del').onclick  = () => {
     if (confirm(`¿Eliminar "${b.title}"?`)) {
-      books = books.filter(x => x.id !== id);
-      persist(books);
+      removeBook(id);
       closeDet();
-      refresh();
     }
   };
 
@@ -757,7 +861,6 @@ $('det-overlay').addEventListener('click', e => { if (e.target === $('det-overla
 
 /* ── Init ── */
 $('f-date').value = new Date().toISOString().slice(0,10);
-refresh();
 </script>
 </body>
 </html>
