@@ -485,6 +485,12 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+/* ── Helpers (definidos primero) ── */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const coverUrl = (id, sz='M') => id ? `https://covers.openlibrary.org/b/id/${id}-${sz}.jpg` : null;
+
 /* ── Firebase ── */
 const firebaseConfig = {
   apiKey: "AIzaSyAZQsVCU2EVlB0qKLGZunJTIdyuvdIYHTc",
@@ -573,10 +579,6 @@ let starVal = 0;
 let pendingBook = {};
 
 /* ── Helpers ── */
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
-const coverUrl = (id, sz='M') => id ? `https://covers.openlibrary.org/b/id/${id}-${sz}.jpg` : null;
 
 function starsHtml(r, cls='s') {
   return [1,2,3,4,5].map(i => {
