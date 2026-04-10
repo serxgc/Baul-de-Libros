@@ -478,10 +478,17 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+window.onerror = (msg, src, line) => {
+  document.getElementById('login-sub').textContent = '⚠ Error JS: ' + msg + ' (línea ' + line + ')';
+  document.getElementById('login-sub').style.color = '#ef4444';
+};
+document.getElementById('btn-signin').addEventListener('click', () => {
+  document.getElementById('login-sub').textContent = 'Conectando…';
+});
 /* ── Firebase ── */
 const firebaseConfig = {
   apiKey: "AIzaSyAZQsVCU2EVlB0qKLGZunJTIdyuvdIYHTc",
