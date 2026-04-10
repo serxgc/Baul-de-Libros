@@ -341,16 +341,14 @@
     .login-logo { font-size: 2.5rem; font-weight: bold; color: var(--accent); }
     .login-logo span { color: var(--text); }
     .login-sub { font-family: sans-serif; font-size: .95rem; color: var(--muted); }
-    .btn-google {
-      display: flex; align-items: center; gap: .75rem;
-      background: #fff; color: #3c4043; border: none;
-      padding: .7rem 1.4rem; border-radius: 8px;
-      font-size: .95rem; font-family: sans-serif; font-weight: 500;
-      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.35);
-      transition: box-shadow .15s;
-    }
-    .btn-google:hover { box-shadow: 0 4px 14px rgba(0,0,0,.45); }
-    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .login-form { display: flex; flex-direction: column; gap: .75rem; width: 300px; }
+    .login-form .inp { background: var(--card); border-color: var(--border); }
+    .login-btns { display: flex; gap: .6rem; }
+    .login-btns button { flex: 1; padding: .65rem; border-radius: 8px; border: none; font-size: .9rem; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: opacity .15s; }
+    .login-btns button:hover { opacity: .85; }
+    .btn-login { background: var(--accent); color: #1c1917; }
+    .btn-register { background: var(--card); color: var(--text); border: 1px solid var(--border) !important; }
+    .login-error { font-family: sans-serif; font-size: .8rem; color: #ef4444; text-align: center; min-height: 1.2em; }
 
     /* ── User in header ── */
     .user-area { display: flex; align-items: center; gap: .6rem; }
@@ -366,10 +364,15 @@
 <div class="login-screen visible" id="login-screen">
   <div class="login-logo">Biblio<span>track</span></div>
   <div class="login-sub">Tu registro personal de lecturas</div>
-  <button class="btn-google" id="btn-signin">
-    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-    Continuar con Google
-  </button>
+  <div class="login-form">
+    <input class="inp" id="login-email" type="email" placeholder="Email" autocomplete="email" />
+    <input class="inp" id="login-pass"  type="password" placeholder="Contraseña" autocomplete="current-password" />
+    <div class="login-btns">
+      <button class="btn-login"    id="btn-login">Entrar</button>
+      <button class="btn-register" id="btn-register">Registrarse</button>
+    </div>
+    <div class="login-error" id="login-error"></div>
+  </div>
 </div>
 
 <!-- ── Header ── -->
@@ -482,13 +485,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-window.onerror = (msg, src, line) => {
-  document.getElementById('login-sub').textContent = '⚠ Error JS: ' + msg + ' (línea ' + line + ')';
-  document.getElementById('login-sub').style.color = '#ef4444';
-};
-document.getElementById('btn-signin').addEventListener('click', () => {
-  document.getElementById('login-sub').textContent = 'Conectando…';
-});
 /* ── Firebase ── */
 const firebaseConfig = {
   apiKey: "AIzaSyAZQsVCU2EVlB0qKLGZunJTIdyuvdIYHTc",
@@ -539,8 +535,34 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-$('btn-signin').onclick  = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-  .catch(e => { $('login-sub').textContent = 'Error: ' + e.message; });
+function authError(e) {
+  const msgs = {
+    'auth/user-not-found':    'No existe una cuenta con ese email.',
+    'auth/wrong-password':    'Contraseña incorrecta.',
+    'auth/email-already-in-use': 'Ese email ya está registrado.',
+    'auth/invalid-email':     'Email no válido.',
+    'auth/weak-password':     'La contraseña debe tener al menos 6 caracteres.',
+    'auth/invalid-credential':'Email o contraseña incorrectos.',
+  };
+  $('login-error').textContent = msgs[e.code] || e.message;
+}
+
+$('btn-login').onclick = () => {
+  const email = $('login-email').value.trim();
+  const pass  = $('login-pass').value;
+  if (!email || !pass) { $('login-error').textContent = 'Rellena email y contraseña.'; return; }
+  $('login-error').textContent = '';
+  auth.signInWithEmailAndPassword(email, pass).catch(authError);
+};
+
+$('btn-register').onclick = () => {
+  const email = $('login-email').value.trim();
+  const pass  = $('login-pass').value;
+  if (!email || !pass) { $('login-error').textContent = 'Rellena email y contraseña.'; return; }
+  $('login-error').textContent = '';
+  auth.createUserWithEmailAndPassword(email, pass).catch(authError);
+};
+
 $('btn-signout').onclick = () => auth.signOut();
 
 /* ── State ── */
