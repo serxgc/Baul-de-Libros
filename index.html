@@ -478,14 +478,11 @@
   </div>
 </div>
 
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
 /* ── Firebase ── */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyAZQsVCU2EVlB0qKLGZunJTIdyuvdIYHTc",
   authDomain: "bibliotrack-88f3c.firebaseapp.com",
@@ -495,39 +492,35 @@ const firebaseConfig = {
   appId: "1:951243457890:web:b5dad91594936de9e2983b"
 };
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
 let currentUser = null;
 let unsubBooks  = null;
 
-function booksCol() { return collection(db, `users/${currentUser.uid}/books`); }
+function booksCol() { return db.collection(`users/${currentUser.uid}/books`); }
 
-async function saveBook(entry) {
-  await setDoc(doc(booksCol(), entry.id), entry);
-}
-async function removeBook(id) {
-  await deleteDoc(doc(booksCol(), id));
-}
+function saveBook(entry)  { booksCol().doc(entry.id).set(entry); }
+function removeBook(id)   { booksCol().doc(id).delete(); }
 
 function subscribeBooks() {
   if (unsubBooks) unsubBooks();
-  unsubBooks = onSnapshot(booksCol(), snap => {
+  unsubBooks = booksCol().onSnapshot(snap => {
     books = snap.docs.map(d => d.data());
     refresh();
   });
 }
 
 /* ── Auth UI ── */
-onAuthStateChanged(auth, user => {
+auth.onAuthStateChanged(user => {
   currentUser = user;
   if (user) {
     $('login-screen').classList.remove('visible');
-    $('user-area').style.display   = 'flex';
+    $('user-area').style.display    = 'flex';
     $('btn-open-add').style.display = '';
-    $('user-avatar').src  = user.photoURL || '';
-    $('user-name').textContent = user.displayName || user.email;
+    $('user-avatar').src            = user.photoURL || '';
+    $('user-name').textContent      = user.displayName || user.email;
     subscribeBooks();
   } else {
     $('login-screen').classList.add('visible');
@@ -539,9 +532,9 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-getRedirectResult(auth).catch(console.error);
-$('btn-signin').onclick  = () => signInWithRedirect(auth, new GoogleAuthProvider());
-$('btn-signout').onclick = () => signOut(auth);
+$('btn-signin').onclick  = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+  .catch(e => { $('login-sub').textContent = 'Error: ' + e.message; });
+$('btn-signout').onclick = () => auth.signOut();
 
 /* ── State ── */
 let books = [];
