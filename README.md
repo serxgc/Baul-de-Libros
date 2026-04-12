@@ -14,6 +14,6 @@ Registro personal de lecturas. Guarda los libros que has leído cada año, con p
 
 ## Uso
 
-Abre `index.html` en el navegador, o visita la versión online.
+Abre `index.html` en el navegador, o visita la versión online: https://serxgc.github.io/Baul-de-Libros/
 
 No requiere instalación ni backend.
