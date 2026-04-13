@@ -91,10 +91,11 @@
     .tab-section { display: none; }
     .tab-section.active { display: block; }
 
-    .filter-bar { display: flex; gap: .4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    .filter-bar { display: flex; gap: .4rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center; }
     .fbtn { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .35rem .85rem; font-family: sans-serif; font-size: .78rem; color: var(--muted); cursor: pointer; transition: all .15s; }
     .fbtn:hover { color: var(--text); }
     .fbtn.active { background: var(--accent); border-color: var(--accent); color: #1c1917; font-weight: bold; }
+    .sort-sel { margin-left: auto; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .35rem .85rem; font-family: sans-serif; font-size: .78rem; color: var(--muted); cursor: pointer; outline: none; appearance: none; padding-right: 1.6rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%23a8a29e' d='M5 7 0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .6rem center; }
 
     .page-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
     .page-title { font-size: 1.9rem; }
@@ -406,13 +407,57 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
     @media (max-width: 600px) {
-      header { padding: 0 1rem; gap: 1rem; }
-      .header-stats { gap: 1rem; }
-      main { padding: 1rem; }
-      .year-nav { padding: 0 1rem; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1rem; }
+      /* Header */
+      header { padding: 0 .85rem; gap: .6rem; height: auto; min-height: 56px; flex-wrap: wrap; padding-top: .5rem; padding-bottom: .5rem; }
+      .logo { font-size: 1.2rem; }
+      .header-stats { gap: .8rem; order: 3; width: 100%; justify-content: center; padding-bottom: .3rem; }
+      .stat-item .num { font-size: 1rem; }
+      .btn-add { font-size: .8rem; padding: .4rem .85rem; }
+
+      /* Nav */
+      .main-tabs { padding: 0 .85rem; }
+      .mtab { padding: .65rem .9rem; font-size: .8rem; }
+      .year-nav { padding: 0 .85rem; }
+      .ytab { padding: .6rem .85rem; font-size: .8rem; }
+
+      /* Main */
+      main { padding: .85rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: .85rem; }
+
+      /* Modals — full screen on mobile */
+      .overlay { padding: 0; align-items: flex-end; }
+      .modal { border-radius: var(--r) var(--r) 0 0; max-height: 92vh; }
+      .modal-lg { max-width: 100%; }
+      .modal-sm { max-width: 100%; }
+
+      /* Add modal step2 */
       .s2-wrap { grid-template-columns: 1fr; }
-      .s2-cover-col { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; border-radius: var(--r) var(--r) 0 0; }
+      .s2-cover-col {
+        border-right: none; border-bottom: 1px solid var(--border);
+        flex-direction: row; border-radius: var(--r) var(--r) 0 0;
+        padding: 1rem; gap: .75rem; align-items: center;
+      }
+      .s2-cover, .s2-cover-ph { width: 64px; }
+      .s2-book-title { font-size: .8rem; text-align: left; }
+      .s2-book-author { text-align: left; }
+      .s2-back { margin-top: 0; margin-left: auto; }
+      .s2-form-col { padding: 1rem 1rem 0; }
+
+      /* Detail modal */
+      .detail-wrap { grid-template-columns: 1fr; gap: 1rem; padding: 1.2rem; }
+      .d-cover { max-width: 130px; margin: 0 auto; display: block; }
+      .d-cover-ph { max-width: 130px; margin: 0 auto; }
+
+      /* Forms */
+      .fgrid2 { grid-template-columns: 1fr; }
+      .habit-row { flex-direction: column; }
+
+      /* Recap */
+      .recap-stats { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 380px) {
+      .header-stats { display: none; }
     }
 
     /* ── Login screen ── */
@@ -495,6 +540,15 @@
       <button class="fbtn" data-filter="read">✓ Leídos</button>
       <button class="fbtn" data-filter="reading">Leyendo</button>
       <button class="fbtn" data-filter="want">Quiero leer</button>
+      <select class="sort-sel" id="sort-sel">
+        <option value="date-desc">Fecha ↓</option>
+        <option value="date-asc">Fecha ↑</option>
+        <option value="rating-desc">Valoración ↓</option>
+        <option value="rating-asc">Valoración ↑</option>
+        <option value="title-asc">Título A-Z</option>
+        <option value="title-desc">Título Z-A</option>
+        <option value="author-asc">Autor A-Z</option>
+      </select>
     </div>
     <div class="page-header">
       <h1 class="page-title" id="pg-title">Todos los libros</h1>
@@ -566,6 +620,10 @@
         <div class="srow">
           <input class="inp" id="q" placeholder="Título, autor…" autocomplete="off" />
           <button class="btn btn-p" id="btn-go">Buscar</button>
+        </div>
+        <div style="margin-top:.6rem;font-family:sans-serif;font-size:.78rem;color:var(--muted)">
+          ¿No encuentras el libro?
+          <button id="btn-manual" style="background:none;border:none;color:var(--accent);font-size:.78rem;font-family:sans-serif;cursor:pointer;padding:0;text-decoration:underline">Añádelo manualmente</button>
         </div>
       </div>
       <div id="results-wrap">
@@ -790,9 +848,18 @@ function renderGrid() {
     return;
   }
 
-  const sorted = [...vis].sort((a,b) => {
-    if (a.date && b.date) return new Date(b.date)-new Date(a.date);
-    return a.date ? -1 : b.date ? 1 : a.title.localeCompare(b.title);
+  const sortVal = $('sort-sel')?.value || 'date-desc';
+  const sorted = [...vis].sort((a, b) => {
+    switch (sortVal) {
+      case 'date-desc':   return (b.date||'').localeCompare(a.date||'');
+      case 'date-asc':    return (a.date||'').localeCompare(b.date||'');
+      case 'rating-desc': return (b.rating||0) - (a.rating||0);
+      case 'rating-asc':  return (a.rating||0) - (b.rating||0);
+      case 'title-asc':   return a.title.localeCompare(b.title, 'es');
+      case 'title-desc':  return b.title.localeCompare(a.title, 'es');
+      case 'author-asc':  return (a.author||'').localeCompare(b.author||'', 'es');
+      default:            return 0;
+    }
   });
 
   grid.innerHTML = sorted.map(b => {
@@ -1115,6 +1182,7 @@ function renderRecap() {
 }
 
 $('recap-year').addEventListener('change', () => buildRecap(parseInt($('recap-year').value)));
+$('sort-sel').addEventListener('change', renderGrid);
 
 function buildRecap(yr) {
   const yBooks  = books.filter(b => b.status==='read' && b.date && new Date(b.date).getFullYear()===yr);
@@ -1165,6 +1233,7 @@ $('add-close').onclick    = closeAdd;
 $('btn-cancel').onclick   = closeAdd;
 $('btn-back').onclick     = () => goStep(1);
 $('btn-go').onclick       = doSearch;
+$('btn-manual').onclick   = () => manualEntry($('q').value.trim());
 $('det-close').onclick    = closeDet;
 
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
