@@ -95,7 +95,16 @@
     .fbtn { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .35rem .85rem; font-family: sans-serif; font-size: .78rem; color: var(--muted); cursor: pointer; transition: all .15s; }
     .fbtn:hover { color: var(--text); }
     .fbtn.active { background: var(--accent); border-color: var(--accent); color: #1c1917; font-weight: bold; }
-    .sort-sel { margin-left: auto; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .35rem .85rem; font-family: sans-serif; font-size: .78rem; color: var(--muted); cursor: pointer; outline: none; appearance: none; padding-right: 1.6rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%23a8a29e' d='M5 7 0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .6rem center; }
+    .sort-wrap { margin-left: auto; position: relative; }
+    .sort-btn { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .35rem .85rem; font-family: sans-serif; font-size: .78rem; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: .35rem; transition: all .15s; }
+    .sort-btn:hover { color: var(--text); }
+    .sort-btn.open { color: var(--text); border-color: var(--accent); }
+    .sort-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .sort-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; z-index: 100; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    .sort-menu.open { display: block; }
+    .sort-opt { padding: .55rem 1rem; font-family: sans-serif; font-size: .8rem; color: var(--muted); cursor: pointer; transition: background .1s; white-space: nowrap; }
+    .sort-opt:hover { background: rgba(255,255,255,.06); color: var(--text); }
+    .sort-opt.active { color: var(--accent); font-weight: bold; }
 
     .page-header { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem; }
     .page-title { font-size: 1.9rem; }
@@ -540,15 +549,23 @@
       <button class="fbtn" data-filter="read">✓ Leídos</button>
       <button class="fbtn" data-filter="reading">Leyendo</button>
       <button class="fbtn" data-filter="want">Quiero leer</button>
-      <select class="sort-sel" id="sort-sel">
-        <option value="date-desc">Fecha ↓</option>
-        <option value="date-asc">Fecha ↑</option>
-        <option value="rating-desc">Valoración ↓</option>
-        <option value="rating-asc">Valoración ↑</option>
-        <option value="title-asc">Título A-Z</option>
-        <option value="title-desc">Título Z-A</option>
-        <option value="author-asc">Autor A-Z</option>
-      </select>
+      <div class="sort-wrap">
+        <button class="sort-btn" id="sort-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="2" y1="4" x2="14" y2="4"/><line x1="4" y1="8" x2="12" y2="8"/><line x1="6" y1="12" x2="10" y2="12"/>
+          </svg>
+          <span id="sort-label">Ordenar</span>
+        </button>
+        <div class="sort-menu" id="sort-menu">
+          <div class="sort-opt active" data-sort="date-desc">Fecha — más reciente</div>
+          <div class="sort-opt" data-sort="date-asc">Fecha — más antigua</div>
+          <div class="sort-opt" data-sort="rating-desc">Valoración — mayor</div>
+          <div class="sort-opt" data-sort="rating-asc">Valoración — menor</div>
+          <div class="sort-opt" data-sort="title-asc">Título A → Z</div>
+          <div class="sort-opt" data-sort="title-desc">Título Z → A</div>
+          <div class="sort-opt" data-sort="author-asc">Autor A → Z</div>
+        </div>
+      </div>
     </div>
     <div class="page-header">
       <h1 class="page-title" id="pg-title">Todos los libros</h1>
@@ -848,7 +865,7 @@ function renderGrid() {
     return;
   }
 
-  const sortVal = $('sort-sel')?.value || 'date-desc';
+  const sortVal = window.activeSortVal || 'date-desc';
   const sorted = [...vis].sort((a, b) => {
     switch (sortVal) {
       case 'date-desc':   return (b.date||'').localeCompare(a.date||'');
@@ -1182,7 +1199,31 @@ function renderRecap() {
 }
 
 $('recap-year').addEventListener('change', () => buildRecap(parseInt($('recap-year').value)));
-$('sort-sel').addEventListener('change', renderGrid);
+/* ── Sort menu ── */
+window.activeSortVal = 'date-desc';
+const sortLabels = {
+  'date-desc': 'Fecha — reciente', 'date-asc': 'Fecha — antigua',
+  'rating-desc': 'Valoración — mayor', 'rating-asc': 'Valoración — menor',
+  'title-asc': 'Título A→Z', 'title-desc': 'Título Z→A',
+  'author-asc': 'Autor A→Z'
+};
+$('sort-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  $('sort-menu').classList.toggle('open');
+  $('sort-btn').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  $('sort-menu').classList.remove('open');
+  $('sort-btn').classList.remove('open');
+});
+document.querySelectorAll('.sort-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    window.activeSortVal = opt.dataset.sort;
+    $('sort-label').textContent = sortLabels[opt.dataset.sort];
+    document.querySelectorAll('.sort-opt').forEach(o => o.classList.toggle('active', o === opt));
+    renderGrid();
+  });
+});
 
 function buildRecap(yr) {
   const yBooks  = books.filter(b => b.status==='read' && b.date && new Date(b.date).getFullYear()===yr);
