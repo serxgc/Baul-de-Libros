@@ -248,12 +248,12 @@
     .fgrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
 
     /* Star input */
-    .star-inp { display: flex; gap: 2px; }
-    .star-slot { position: relative; width: 1.7rem; height: 1.7rem; cursor: pointer; user-select: none; }
-    .sh, .sf { position: absolute; top: 0; font-size: 1.7rem; line-height: 1; color: var(--border); overflow: hidden; white-space: nowrap; transition: color .08s; }
-    .sh { width: 50%; left: 0; }
-    .sf { width: 100%; left: 0; }
-    .sh.on, .sf.on { color: var(--star-on); }
+    .star-inp { display: flex; gap: 4px; }
+    .star-slot { font-size: 1.9rem; cursor: pointer; color: var(--border); user-select: none; position: relative; line-height: 1; transition: transform .1s; }
+    .star-slot:hover { transform: scale(1.15); }
+    .star-slot.on   { color: var(--star-on); }
+    .star-slot.half { color: var(--border); }
+    .star-slot.half::before { content:'★'; position:absolute; left:0; top:0; width:50%; overflow:hidden; color:var(--star-on); display:inline-block; }
 
     /* ══════════════════════════════════
        ADD MODAL — step 1: search
@@ -573,11 +573,11 @@
           <div class="frow">
             <label class="flbl">Puntuación</label>
             <div class="star-inp" id="star-inp">
-              <div class="star-slot"><span class="sh" data-v="0.5">★</span><span class="sf" data-v="1">★</span></div>
-              <div class="star-slot"><span class="sh" data-v="1.5">★</span><span class="sf" data-v="2">★</span></div>
-              <div class="star-slot"><span class="sh" data-v="2.5">★</span><span class="sf" data-v="3">★</span></div>
-              <div class="star-slot"><span class="sh" data-v="3.5">★</span><span class="sf" data-v="4">★</span></div>
-              <div class="star-slot"><span class="sh" data-v="4.5">★</span><span class="sf" data-v="5">★</span></div>
+              <span class="star-slot" data-i="1">★</span>
+              <span class="star-slot" data-i="2">★</span>
+              <span class="star-slot" data-i="3">★</span>
+              <span class="star-slot" data-i="4">★</span>
+              <span class="star-slot" data-i="5">★</span>
             </div>
           </div>
           <div class="fgrid2">
@@ -680,14 +680,14 @@ auth.onAuthStateChanged(user => {
 
 function authError(e) {
   const msgs = {
-    'auth/user-not-found':    'No existe una cuenta con ese email.',
-    'auth/wrong-password':    'Contraseña incorrecta.',
-    'auth/email-already-in-use': 'Ese email ya está registrado.',
-    'auth/invalid-email':     'Email no válido.',
-    'auth/weak-password':     'La contraseña debe tener al menos 6 caracteres.',
-    'auth/invalid-credential':'Email o contraseña incorrectos.',
+    'auth/user-not-found':       'Email o contraseña incorrectos.',
+    'auth/wrong-password':       'Email o contraseña incorrectos.',
+    'auth/invalid-credential':   'Email o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ese email ya tiene una cuenta. Prueba a entrar.',
+    'auth/invalid-email':        'El email no es válido.',
+    'auth/weak-password':        'La contraseña debe tener al menos 6 caracteres.',
   };
-  $('login-error').textContent = msgs[e.code] || e.message;
+  $('login-error').textContent = msgs[e.code] || 'Algo ha ido mal. Inténtalo de nuevo.';
 }
 
 $('btn-login').onclick = () => {
@@ -849,17 +849,31 @@ function resetForm() {
 /* Stars */
 function setStars(v) {
   starVal = v;
-  document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(el =>
-    el.classList.toggle('on', parseFloat(el.dataset.v) <= v)
-  );
+  document.querySelectorAll('#star-inp .star-slot').forEach(el => {
+    const i = parseInt(el.dataset.i);
+    el.classList.toggle('on',   v >= i);
+    el.classList.toggle('half', v >= i - 0.5 && v < i);
+  });
 }
-document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(el => {
-  el.addEventListener('click', () => setStars(parseFloat(el.dataset.v)));
-  el.addEventListener('mouseenter', () => {
-    const hv = parseFloat(el.dataset.v);
-    document.querySelectorAll('#star-inp .sh, #star-inp .sf').forEach(s =>
-      s.classList.toggle('on', parseFloat(s.dataset.v) <= hv)
-    );
+
+function previewStars(v) {
+  document.querySelectorAll('#star-inp .star-slot').forEach(el => {
+    const i = parseInt(el.dataset.i);
+    el.classList.toggle('on',   v >= i);
+    el.classList.toggle('half', v >= i - 0.5 && v < i);
+  });
+}
+
+document.querySelectorAll('#star-inp .star-slot').forEach(el => {
+  el.addEventListener('mousemove', e => {
+    const i    = parseInt(el.dataset.i);
+    const half = e.offsetX < el.offsetWidth / 2;
+    previewStars(half ? i - 0.5 : i);
+  });
+  el.addEventListener('click', e => {
+    const i    = parseInt(el.dataset.i);
+    const half = e.offsetX < el.offsetWidth / 2;
+    setStars(half ? i - 0.5 : i);
   });
 });
 $('star-inp').addEventListener('mouseleave', () => setStars(starVal));
