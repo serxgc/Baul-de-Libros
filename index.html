@@ -249,7 +249,7 @@
 
     /* Star input */
     .star-inp { display: flex; gap: 4px; }
-    .star-slot { font-size: 1.9rem; cursor: pointer; color: var(--border); user-select: none; position: relative; line-height: 1; transition: transform .1s; }
+    .star-slot { font-size: 1.9rem; cursor: pointer; color: var(--border); user-select: none; position: relative; line-height: 1; transition: transform .1s; display: inline-block; }
     .star-slot:hover { transform: scale(1.15); }
     .star-slot.on   { color: var(--star-on); }
     .star-slot.half { color: var(--border); }
@@ -865,15 +865,17 @@ function previewStars(v) {
 }
 
 document.querySelectorAll('#star-inp .star-slot').forEach(el => {
+  function isHalf(e) {
+    const r = el.getBoundingClientRect();
+    return (e.clientX - r.left) < r.width / 2;
+  }
   el.addEventListener('mousemove', e => {
-    const i    = parseInt(el.dataset.i);
-    const half = e.offsetX < el.offsetWidth / 2;
-    previewStars(half ? i - 0.5 : i);
+    const i = parseInt(el.dataset.i);
+    previewStars(isHalf(e) ? i - 0.5 : i);
   });
   el.addEventListener('click', e => {
-    const i    = parseInt(el.dataset.i);
-    const half = e.offsetX < el.offsetWidth / 2;
-    setStars(half ? i - 0.5 : i);
+    const i = parseInt(el.dataset.i);
+    setStars(isHalf(e) ? i - 0.5 : i);
   });
 });
 $('star-inp').addEventListener('mouseleave', () => setStars(starVal));
